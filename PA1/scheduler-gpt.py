@@ -2,9 +2,7 @@
 # Written by Brooks McKinley, Juan Torres Camacho, and Ryan Ramdihal.
 # 
 # This file was human-modified to make the following general changes:
-# 1. Scheduler functions (AI-written unless otherwise specified) were moved from their own conversations/files to this
-#    one.
-# 2. Lines explicitly marked "human-fixed" were fixed for the reasons stated in each line.
+# 1. Scheduler functions 
 
 import sys
 import os
@@ -23,14 +21,13 @@ class Process:
         return self.name
 
 def sjf(processes, runFor, output_file):
-    # Human-fixed removed unnecessary sort that was preventing arrivals from being shown in the order they were input.
     current_time = 0
     completed_processes = 0  # Use an integer counter
     queue = []
     last_selected_process = None
 
     with open(output_file, 'w') as file:
-        file.write(f"{len(processes):3d} processes\n") # Human-fixed add padding
+        file.write(f"{len(processes):3d} processes\n") 
         file.write("Using preemptive Shortest Job First\n")
 
         while current_time < runFor:
@@ -40,7 +37,6 @@ def sjf(processes, runFor, output_file):
                     queue.append(process)
                     file.write(f"Time {current_time:3d} : {process.name} arrived\n")
 
-            # Human-fixed Move "finished" events to match output test files
             if last_selected_process != None and last_selected_process.finish_time != None:
                 file.write(f"Time {current_time:3d} : {last_selected_process.name} finished\n")
                 last_selected_process = None
@@ -70,7 +66,6 @@ def sjf(processes, runFor, output_file):
 
             current_time += 1
 
-        # Human-fixed Move "finished" events to match output test files
         if last_selected_process != None and last_selected_process.finish_time != None:
             file.write(f"Time {current_time:3d} : {last_selected_process.name} finished\n")
             last_selected_process = None
@@ -81,7 +76,6 @@ def printMetrics(processes, file):
     for process in processes:
         if process.finish_time is not None:
             process.wait_time = process.finish_time - process.arrival - process.burst
-            # Human-fixed fixed padding
             file.write(f"{process.name} wait {process.wait_time:3d} turnaround {process.finish_time - process.arrival:3d} response {process.response_time:3d}\n")
         else:
             file.write(f"{process.name} did not finish\n")
@@ -93,17 +87,16 @@ def fifo(processes, runFor, output_file):
     last_selected_process = None
 
     with open(output_file, "w") as f:
-        f.write(f"{len(processes):3d} processes\n") # Human-fixed add padding
-        f.write("Using First-Come First-Served\n") # Human-fixed fixed name
+        f.write(f"{len(processes):3d} processes\n")
+        f.write("Using First-Come First-Served\n") 
 
-        while current_time < runFor: # Human-fixed Remove "or queue" that was required all processes to finish before ending
+        while current_time < runFor: 
             # Check for arriving processes and add them to the queue
             for process in processes:
                 if process.arrival == current_time:
                     queue.append(process)
                     f.write(f"Time {current_time:3d} : {process.name} arrived\n")
 
-            # Human-fixed Move "finished" events to match output test files
             if last_selected_process != None and last_selected_process.finish_time != None:
                 f.write(f"Time {current_time:3d} : {last_selected_process.name} finished\n")
                 last_selected_process = None
@@ -119,7 +112,6 @@ def fifo(processes, runFor, output_file):
                     selected_process.response_time = current_time - selected_process.arrival
 
                 if selected_process != last_selected_process:
-                    # Human-fixed fixed padding
                     f.write(f"Time {current_time:3d} : {selected_process.name} selected (burst {selected_process.remaining_burst:3d})\n")
 
                 selected_process.remaining_burst -= 1
@@ -133,12 +125,11 @@ def fifo(processes, runFor, output_file):
 
             current_time += 1
 
-        # Human-fixed Move "finished" events to match output test files
         if last_selected_process != None and last_selected_process.finish_time != None:
             f.write(f"Time {current_time:3d} : {last_selected_process.name} finished\n")
             last_selected_process = None
-        f.write(f"Finished at time {current_time:3d}\n\n") # Human-fixed added extra newline and padding
-        printMetrics(processes, f) # Human-fixed use existing printMetrics function instead of recalculating
+        f.write(f"Finished at time {current_time:3d}\n\n")
+        printMetrics(processes, f) 
 
 def rr(processes, run_for, quantum, output_file):
     current_time = 0 #counter for time iteration 
@@ -152,21 +143,18 @@ def rr(processes, run_for, quantum, output_file):
         output.write(f"{len(processes):3d} processes\n") # Human-fixed add padding
         output.write(f"Using Round-Robin\nQuantum {quantum:3d}\n\n")
 
-        while current_time < run_for: # Human-fixed removed "or queue" , because it would continue iterating after runfor
+        while current_time < run_for: 
             #ARRIVED
             for process in processes:
                 if process.arrival == current_time:
-                    # Human-fixed modify this section to work with re-ordered code
                     queue.append(process)
                     # Write a message indicating the arrival of a process to the output file
                     output.write(f"Time {current_time:3d} : {process.name} arrived\n")
             
-            # Human-fixed Move "finished" events to match output test files
             if last_selected_process != None and last_selected_process.finish_time != None:
                 output.write(f"Time {current_time:3d} : {last_selected_process.name} finished\n")
                 last_selected_process = None
 
-            # Human-fixed moved process preempting code after arrivals
             #CASE WHEN PROCESS NEEDS TO STOP and quantum counter reset
             if queue and quantum_counter == quantum:
                 preempted_process = queue.pop(0)
@@ -175,7 +163,6 @@ def rr(processes, run_for, quantum, output_file):
                 quantum_counter = 0
                 # Write a message indicating process preemption to the output file
                 # output.write(f"Time {current_time + 1:3d} : {preempted_process.name} preempted\n")
-                # Human-fixed deselect the process so the selection gets printed again
                 selected_process = None
 
             #NO PROCESS IN QUEUE
@@ -191,11 +178,9 @@ def rr(processes, run_for, quantum, output_file):
                     selected_process.start_time = current_time
                     selected_process.response_time = current_time - selected_process.arrival
 
-                # Human-fixed modified condition to only print when the quantum is zero, so we print only when the 
                 # process is actually selected
                 if quantum_counter == 0:
                     # Write a message indicating the selection of a process to the output file
-                    # Human-fixed fixed padding
                     output.write(f"Time {current_time:3d} : {selected_process.name} selected (burst {selected_process.remaining_burst:3d})\n")
 
                 selected_process.remaining_burst -= 1
@@ -213,7 +198,6 @@ def rr(processes, run_for, quantum, output_file):
 
             current_time += 1
 
-        # Human-fixed Move "finished" events to match output test files
         if last_selected_process != None and last_selected_process.finish_time != None:
             output.write(f"Time {current_time:3d} : {last_selected_process.name} finished\n")
             last_selected_process = None
@@ -242,13 +226,11 @@ def main():
     output_file = generate_output_file(input_file)
 
     processes = []
-    run_for = None # Human-fixed removed default value for run_for so we can check if it was provided
-    scheduler = None
-    quantum = None # Human-fixed removed defaut value for quantum
-    num_processes = None # Human-fixed initialize num_processes so we can check if it was provided
+    run_for = None # 
+    quantum = None # 
+    num_processes = None # 
     scheduler_provided = False  # Variable to track if the scheduler parameter was provided
     
-    # Human-fixed moved lambda to different scope so we can check the selected scheduler later
     rr_scheduler = lambda processes, run_for, output_file: rr(processes, run_for, quantum, output_file)
 
     try:
@@ -257,7 +239,6 @@ def main():
                 line = line.strip()
                 parts = line.split()
 
-                # Human-fixed prevent crashes on empty lines in input file
                 if len(parts) == 0:
                     directive = None
                 else:
@@ -269,13 +250,12 @@ def main():
                     run_for = int(parts[1])
                 elif directive == "use":
                     algorithm = parts[1]
-                    scheduler_provided = True # Human-fixed moved line to avoid repeated code
+                    scheduler_provided = True #
                     if algorithm == "sjf":
                         scheduler = sjf
                     elif algorithm == "fcfs":
                         scheduler = fifo
                     elif algorithm == "rr":
-                        # Human-fixed fixed argument order and count
                         scheduler = rr_scheduler
                 elif directive == "quantum":
                     quantum = int(parts[1])  # Set the quantum value
@@ -299,11 +279,11 @@ def main():
         sys.exit(1)
 
     if not scheduler_provided:
-        print("Error: Missing parameter - use") # Human-fixed fixed error message
+        print("Error: Missing parameter - use") 
         sys.exit(1)
 
-    if scheduler == rr_scheduler and not quantum: # Human-fixed check scheduler against the lambda, not the original function
-        print("Error: Missing parameter - quantum") # Human-fixed fixed error message
+    if scheduler == rr_scheduler and not quantum: 
+        print("Error: Missing parameter - quantum") 
         sys.exit(1)
 
     if scheduler:
