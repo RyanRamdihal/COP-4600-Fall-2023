@@ -1,8 +1,7 @@
 # ChatGPT Scheduler
 # Written by Brooks McKinley, Juan Torres Camacho, and Ryan Ramdihal.
 # 
-# This file was human-modified to make the following general changes:
-# 1. Scheduler functions 
+
 
 import sys
 import os
